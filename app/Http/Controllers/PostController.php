@@ -13,8 +13,8 @@ class PostController extends Controller
      */
     public function index()
     {
-        return Inertia:: render('posts/Index', [
-            'posts'=> Post:: paginate(1),
+        return Inertia::render('posts/Index', [
+            'posts'=> Post:: paginate(30),
         ]);
     }
 
@@ -48,7 +48,9 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        return Inertia::render('posts/Show', [
+            'post'=> $post,
+        ]);
     }
 
     /**
@@ -56,7 +58,9 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return Inertia::render('posts/Edit', [
+            'post'=> $post,
+        ]);
     }
 
     /**
@@ -64,7 +68,17 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $data = $request->validate([
+            'title'=>'required|string|max:255',
+            'content'=>'required|string',
+            'author'=> 'required|string|max:255',
+            'published'=> 'boolean',
+        ]);
+
+            // kindlusta boolean
+        $data['published'] = (bool) ($data['published'] ?? false);
+        $post->update($data);
+        return redirect()-> route('posts.index');
     }
 
     /**
@@ -72,6 +86,7 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+        return redirect()-> route('posts.index');
     }
 }

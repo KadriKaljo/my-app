@@ -4,6 +4,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import Pagination from '@/components/ui/pagination/Pagination.vue';
 import PaginationEllipsis from '@/components/ui/pagination/PaginationEllipsis.vue';
 import PaginationFirst from '@/components/ui/pagination/PaginationFirst.vue';
+import PaginationLast from '@/components/ui/pagination/PaginationLast.vue';
+import PaginationNext from '@/components/ui/pagination/PaginationNext.vue';
 import PaginationPrevious from '@/components/ui/pagination/PaginationPrevious.vue';
 import Table from '@/components/ui/table/Table.vue';
 import TableBody from '@/components/ui/table/TableBody.vue';
@@ -13,11 +15,11 @@ import TableHead from '@/components/ui/table/TableHead.vue';
 import TableHeader from '@/components/ui/table/TableHeader.vue';
 import TableRow from '@/components/ui/table/TableRow.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { index } from '@/routes/posts';
 import { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 import { PaginationList, PaginationListItem } from 'reka-ui';
+import {index, edit, destroy, show} from '@/routes/posts';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -25,6 +27,23 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: index().url,
     },
 ];
+
+const onEdit = (post: Post) => {
+    router.get(edit(post.id).url);
+};
+
+const onDelete = (post: Post) => {
+    if (confirm('Delete this post?')) {
+        router.delete(destroy(post.id).url, {
+            preserveScroll: true,
+        });
+    }
+};
+
+const onShow = (post: Post) => {
+    router.get(show(post.id).url);
+};
+
 interface PaginationLink {
     url: string | null;
     label: string;
@@ -70,7 +89,7 @@ defineProps<{
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-            <pre>{{ posts }}</pre>
+
             <Table>
                 <TableCaption>A list of your recent blog posts.</TableCaption>
                 <TableHeader>
@@ -103,10 +122,10 @@ defineProps<{
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem>View</DropdownMenuItem>
-                                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                                        <DropdownMenuItem @click="onShow(post)">View</DropdownMenuItem>
+                                        <DropdownMenuItem @click="onEdit(post)">Edit</DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem class="text-destruvtive">Delete</DropdownMenuItem>
+                                        <DropdownMenuItem class="text-destrukvtive" @click="onDelete(post)">Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -114,10 +133,17 @@ defineProps<{
                     </TableRow>
                 </TableBody>
             </Table>
-            <Pagination v-slot="{ page }" :items-per-page="10" :total="30" :default-page="2">
-                <PaginationList v-slot="{ items }" class="flex items-center gap-1">
+            <Pagination
+                v-slot="{ page }" 
+            :page="posts.current_page"
+            :items-per-page="posts.per_page" 
+            :total="posts.total" 
+            class="mt-2 w-full" 
+            @update:page="(page) => router.get(index().url, {page: page})">
+           <PaginationList v-slot="{ items }" class="flex items-center gap-1">
                     <PaginationFirst />
                     <PaginationPrevious />
+
 
                     <template v-for="(item, index) in items">
                         <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
