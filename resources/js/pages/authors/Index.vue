@@ -19,33 +19,41 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 import { PaginationList, PaginationListItem } from 'reka-ui';
-import {index, edit, destroy, show} from '@/routes/posts';
+import {index, edit, destroy, show} from '@/routes/authors';
+
+const formatDate = (iso: string) => {
+    try {
+        return new Date(iso).toLocaleDateString();
+    } catch {
+        return iso;
+    }
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Posts',
+        title: 'Authors',
         href: index().url,
     },
 ];
 
-const onEdit = (post: Post) => {
-    router.get(edit(post.id).url);
+const onEdit = (author: Author) => {
+  router.get(edit(author.id).url, { page: authors.current_page });
 };
 
 /* const deletePost = (postID: number) => {
    router.delete(destroy(postID)
 }); */
 
-const onDelete = (post: Post) => {
-    if (confirm('Delete this post?')) {
-        router.delete(destroy(post.id).url, {
-            preserveScroll: true, /* ei tööta, peaks viskama esilehele ja töötab kui lihtsalt return redirect()-> route('posts.index'); */
+    const onDelete = (author: Author) => {
+    if (confirm('Delete this author?')) {
+        router.delete(destroy(author.id).url, {
+            preserveScroll: true, /* ei tööta, peaks viskama esilehele */
         });
     } 
 };
 
-const onShow = (post: Post) => {
-    router.get(show(post.id).url);
+    const onShow = (author: Author) => {
+        router.get(show(author.id).url);  
 };
 
 interface PaginationLink {
@@ -57,7 +65,7 @@ interface PaginationLink {
 
 interface PaginatedResponse {
     current_page: number;
-    data: Post[];
+    data: Author[];
     first_page_url: string;
     from: number;
     last_page: number;
@@ -71,52 +79,50 @@ interface PaginatedResponse {
     total: number;
 }
 
-type Post = {
+    type Author = {
     id: number;
-    title: string;
-    content: string;
-    author: string;
-    published: boolean;
+    first_name: string;
+    last_name: string;
+    date_of_birth: string;
     created_at: string;
     updated_at: string;
-    created_at_formated: string;
-    updated_at_formated: string;
 };
 
-defineProps<{
-    posts: PaginatedResponse;
+const props = defineProps<{
+    authors: PaginatedResponse;
 }>();
+const authors = props.authors;
 </script>
 
 <template>
-    <Head title="Posts" />
+    <Head title="Authors" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
 
             <Table>
-                <TableCaption>A list of your recent blog posts.</TableCaption>
+                <TableCaption>A list of your recent blog authors.</TableCaption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-[100px]">ID</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Author</TableHead>
-                        <TableHead class="text-right">Create at</TableHead>
+                        <TableHead>First Name</TableHead>
+                        <TableHead>Last Name</TableHead>
+                        <TableHead>Date of Birth</TableHead>
+                        <TableHead class="text-right">Created at</TableHead>
                         <TableHead class="text-right">Updated at</TableHead>
-                        <TableHead class="text-right">Published</TableHead>
                         <TableHead>
                             <span class="sr-only">Actions</span>
                         </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow v-for="(post, index) in posts.data" :key="index">
-                        <TableCell class="font-medium">{{ post.id }}</TableCell>
-                        <TableCell>{{ post.title }}</TableCell>
-                        <TableCell>{{ post.author }}</TableCell>
-                        <TableCell class="text-right">{{ post.created_at_formated }}</TableCell>
-                        <TableCell class="text-right">{{ post.updated_at_formated }}</TableCell>
-                        <TableCell class="text-right">{{ post.published }}</TableCell>
+                    <TableRow v-for="(author, index) in authors.data" :key="index">
+                        <TableCell class="font-medium">{{ author.id }}</TableCell>
+                        <TableCell>{{ author.first_name }}</TableCell>
+                        <TableCell>{{ author.last_name }}</TableCell>
+                        <TableCell>{{ author.date_of_birth }}</TableCell>
+                        <TableCell class="text-right">{{ formatDate(author.created_at) }}</TableCell>
+                        <TableCell class="text-right">{{ formatDate(author.updated_at) }}</TableCell>
                         <TableCell>
                             <div class="flex justify-end">
                                 <DropdownMenu>
@@ -126,10 +132,10 @@ defineProps<{
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem @click="onShow(post)">View</DropdownMenuItem> 
-                                        <DropdownMenuItem @click="onEdit(post)">Edit</DropdownMenuItem> 
+                                        <DropdownMenuItem @click="onShow(author)">View</DropdownMenuItem> 
+                                        <DropdownMenuItem @click="onEdit(author)">Edit</DropdownMenuItem> 
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem class="text-destrukvtive" @click="onDelete(post)">Delete</DropdownMenuItem>
+                                        <DropdownMenuItem class="text-destrucvtive" @click="onDelete(author)">Delete</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -139,9 +145,9 @@ defineProps<{
             </Table>
             <Pagination
                 v-slot="{ page }" 
-            :page="posts.current_page"
-            :items-per-page="posts.per_page" 
-            :total="posts.total" 
+            :page="authors.current_page"
+            :items-per-page="authors.per_page" 
+            :total="authors.total" 
             class="mt-2 w-full" 
             @update:page="(page) => router.get(index().url, {page: page})">
            <PaginationList v-slot="{ items }" class="flex items-center gap-1">

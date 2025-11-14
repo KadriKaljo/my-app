@@ -78,7 +78,7 @@ class PostController extends Controller
             // kindlusta boolean
         $data['published'] = (bool) ($data['published'] ?? false);
         $post->update($data);
-        return redirect()-> route('posts.index');
+        return redirect()-> route('posts.index', );
     }
 
     /**
@@ -87,6 +87,7 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         $post->delete();
-        return redirect()-> route('posts.index');
+        return redirect()-> route('posts.index'); 
+        /* return redirect()-> back(); */
     }
 }
