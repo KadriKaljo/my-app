@@ -38,4 +38,8 @@ class Post extends Model
         );
     }
     
+    public function author()
+    {
+        return $this->belongsTo(Author::class);
+    }
 }
